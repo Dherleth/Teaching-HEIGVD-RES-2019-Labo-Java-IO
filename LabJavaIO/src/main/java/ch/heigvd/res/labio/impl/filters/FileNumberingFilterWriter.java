@@ -3,6 +3,7 @@ package ch.heigvd.res.labio.impl.filters;
 import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import ch.heigvd.res.labio.impl.Utils;
 
@@ -55,9 +56,14 @@ public class FileNumberingFilterWriter extends FilterWriter {
     } while(!endOfLine);
   }
 
+
   @Override
   public void write(char[] cbuf, int off, int len) throws IOException {
-    throw new UnsupportedOperationException("The student has not implemented this method yet.");
+    char[] result = Arrays.copyOfRange(cbuf, off, off + len);
+
+    // We go over each char and write them as an int
+    for(int i = 0; i < result.length; ++i)
+      this.write((int) result[i]);
   }
 
   @Override
@@ -78,11 +84,13 @@ public class FileNumberingFilterWriter extends FilterWriter {
       /*
        * We can't return right away on a \r, because we may be on a windows
        * return. So we do nothing on a \r and wait the next char
+       *
+       * TOFIX : Doesn't work if the line ends with \r
        */
       toWrite = "";
 
     } else if(previousChar.equals("\r")) {
-      toWrite = "\r" + ++linesWritten + toWrite;
+      toWrite = "\r" + ++linesWritten + "\t" + toWrite;
     }
 
     previousChar = Character.toString((char) c);

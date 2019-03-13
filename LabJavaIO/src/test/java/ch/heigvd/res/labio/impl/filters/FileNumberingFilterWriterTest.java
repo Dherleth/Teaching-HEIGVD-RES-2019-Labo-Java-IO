@@ -131,4 +131,16 @@ public class FileNumberingFilterWriterTest {
     assertEquals(referenceValue, computedValue);
   }
 
+  @Test
+  public void itShouldHandleWriteWithACharArray() throws IOException {
+    String line = "This is line 1\r\nThis is line 2\nThis is line 3";
+    String expected = "1\tThis is line 1\r\n2\tThis is line 2\n3\tThis is line 3";
+    StringWriter stringWriter = new StringWriter();
+    FileNumberingFilterWriter writer = new FileNumberingFilterWriter(stringWriter);
+    char[] chars = new char[line.length()];
+    line.getChars(0, line.length(), chars, 0);
+    writer.write(chars);
+    assertEquals(expected, stringWriter.toString());
+  }
+
 }
