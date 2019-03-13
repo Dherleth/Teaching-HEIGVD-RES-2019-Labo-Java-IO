@@ -144,7 +144,5 @@ public class ApplicationTest {
     boolean applicationReturnsValidFilePaths = (applicationReturnsValidPlatformSpecificFilePaths || applicationReturnsValidUnixFilePaths);
 
     assertTrue(applicationReturnsValidFilePaths);
-
   }
-
 }
