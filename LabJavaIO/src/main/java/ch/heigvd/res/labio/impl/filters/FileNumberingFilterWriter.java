@@ -4,6 +4,7 @@ import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.logging.Logger;
+import ch.heigvd.res.labio.impl.Utils;
 
 /**
  * This class transforms the streams of character sent to the decorated writer.
@@ -16,16 +17,42 @@ import java.util.logging.Logger;
  * @author Olivier Liechti
  */
 public class FileNumberingFilterWriter extends FilterWriter {
-
   private static final Logger LOG = Logger.getLogger(FileNumberingFilterWriter.class.getName());
+  private int linesWritten;
+  private String previousChar;
 
   public FileNumberingFilterWriter(Writer out) {
     super(out);
+    linesWritten = 0;
+    previousChar = "";
   }
 
   @Override
   public void write(String str, int off, int len) throws IOException {
-    throw new UnsupportedOperationException("The student has not implemented this method yet.");
+    str = str.substring(off, off + len);
+    boolean endOfLine = false;
+
+    //We may have more than one line passed at once
+    do {
+      String[] parsedStr = Utils.getNextLine(str);
+      String toWrite = "";
+
+      // For the first time we write in the stream
+      if (linesWritten == 0) {
+        toWrite = ++linesWritten + "\t";
+      }
+
+      if (parsedStr[0].equals("")) { // No return character in the line
+        toWrite += parsedStr[1];
+        endOfLine = true;
+      } else { // There is a return character in the line
+        toWrite += parsedStr[0] + ++linesWritten + "\t";
+      }
+
+      this.out.write(toWrite);
+
+      str = parsedStr[1];
+    } while(!endOfLine);
   }
 
   @Override
@@ -35,7 +62,31 @@ public class FileNumberingFilterWriter extends FilterWriter {
 
   @Override
   public void write(int c) throws IOException {
-    throw new UnsupportedOperationException("The student has not implemented this method yet.");
-  }
+    String toWrite = Character.toString((char) c);
 
+    // For the first time we write
+    if(linesWritten == 0) {
+      toWrite = ++linesWritten + "\t" + toWrite;
+    } else if(toWrite.equals("\n")) {
+      // We just have to check if we are on a windows return
+      if(previousChar.equals("\r")) {
+        toWrite = "\r\n";
+      }
+
+      toWrite += ++linesWritten + "\t";
+    } else if(toWrite.equals("\r")) {
+      /*
+       * We can't return right away on a \r, because we may be on a windows
+       * return. So we do nothing on a \r and wait the next char
+       */
+      toWrite = "";
+
+    } else if(previousChar.equals("\r")) {
+      toWrite = "\r" + ++linesWritten + toWrite;
+    }
+
+    previousChar = Character.toString((char) c);
+
+    this.out.write(toWrite);
+  }
 }
